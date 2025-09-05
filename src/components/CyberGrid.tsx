@@ -18,10 +18,20 @@ interface GameState {
   playerSequence: number[];
 }
 
-const GRID_SIZE = 16; // 4x4 grid
-const STAGES = 5;
+const INITIAL_GRID_SIZE = 16; // 4x4 grid
+const EXPANDED_GRID_SIZE = 25; // 5x5 grid
+const STAGES = 10;
 const INITIAL_LIVES = 3;
 const STAGE_TIME = 10; // seconds per stage
+const EXPANSION_STAGE = 6; // Stage when grid expands to 5x5
+
+const getGridSize = (stage: number) => {
+  return stage >= EXPANSION_STAGE ? EXPANDED_GRID_SIZE : INITIAL_GRID_SIZE;
+};
+
+const getGridCols = (stage: number) => {
+  return stage >= EXPANSION_STAGE ? 5 : 4;
+};
 
 export const CyberGrid = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -37,9 +47,10 @@ export const CyberGrid = () => {
 
   const generateSequence = useCallback((stage: number) => {
     const length = Math.min(stage + 2, 8); // Increase difficulty
+    const gridSize = getGridSize(stage);
     const sequence = [];
     for (let i = 0; i < length; i++) {
-      sequence.push(Math.floor(Math.random() * GRID_SIZE));
+      sequence.push(Math.floor(Math.random() * gridSize));
     }
     return sequence;
   }, []);
@@ -124,6 +135,31 @@ export const CyberGrid = () => {
           }));
           toast("🎉 Congratulations! You completed all stages!");
         } else {
+          // Check for milestone celebrations
+          const currentStage = gameState.stage;
+          if (currentStage === 3) {
+            toast("🎊 Amazing! Stage 3 conquered!");
+            // Add celebration effect
+            setTimeout(() => {
+              document.body.classList.add("animate-pulse");
+              setTimeout(() => document.body.classList.remove("animate-pulse"), 1000);
+            }, 100);
+          } else if (currentStage === 5) {
+            toast("💫 Incredible! Stage 5 mastered! Grid expanding next...");
+            // Add celebration effect with sparkle
+            setTimeout(() => {
+              document.body.style.animation = "animate-bounce 0.5s ease-in-out 3";
+              setTimeout(() => document.body.style.animation = "", 1500);
+            }, 100);
+          } else if (currentStage === 10) {
+            toast("🏆 LEGENDARY! Stage 10 completed! You're a master!");
+            // Add celebration effect with glow
+            setTimeout(() => {
+              document.documentElement.style.filter = "hue-rotate(180deg)";
+              setTimeout(() => document.documentElement.style.filter = "", 2000);
+            }, 100);
+          }
+
           // Next stage
           const nextStage = gameState.stage + 1;
           const newSequence = generateSequence(nextStage);
@@ -225,8 +261,10 @@ export const CyberGrid = () => {
 
         <CardContent className="space-y-6">
           {/* Game Grid */}
-          <div className="grid grid-cols-4 gap-3 justify-items-center bg-muted/20 p-6 rounded-lg border border-border">
-            {Array.from({ length: GRID_SIZE }).map((_, index) => (
+          <div className={`grid gap-3 justify-items-center bg-muted/20 p-6 rounded-lg border border-border ${
+            gameState.stage >= EXPANSION_STAGE ? 'grid-cols-5' : 'grid-cols-4'
+          }`}>
+            {Array.from({ length: getGridSize(gameState.stage) }).map((_, index) => (
               <GameButton
                 key={index}
                 active={gameState.activeButtons.has(index)}
