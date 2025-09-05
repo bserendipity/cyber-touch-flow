@@ -34,6 +34,7 @@ const getGridCols = (stage: number) => {
 };
 
 export const CyberGrid = () => {
+  // Force hot reload to clear GRID_SIZE cache issue
   const [gameState, setGameState] = useState<GameState>({
     stage: 1,
     score: 0,
